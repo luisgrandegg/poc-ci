@@ -2,11 +2,7 @@ version: 2.1
 executors:
   node:
     docker:
-<<<<<<< HEAD
       - image: cimg/node:20.11.0-browsers
-=======
-      - image: cimg/node:21.6.0-browsers
->>>>>>> 11e58ed (ci: 🎡 add build and test to ci)
     working_directory: ~/ng-project
 orbs:
   browser-tools: circleci/browser-tools@1.4.7
