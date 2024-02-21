@@ -2,7 +2,7 @@ version: 2.1
 executors:
   node:
     docker:
-      - image: cimg/node:21.6.0-browsers
+      - image: cimg/node:20.11.0-browsers
     working_directory: ~/ng-project
 orbs:
   browser-tools: circleci/browser-tools@1.4.7
@@ -36,6 +36,14 @@ jobs:
       - attach_workspace:
           at: .
       - run: npm run build
+      - run: echo building docker image poc-ci version:{{ .Branch }}
+      - run: echo uploading docker image poc-ci version:{{ .Branch }}
+  release:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: .
+      - run: echo creating release process
 workflows:
   version: 2
   quality:
@@ -47,3 +55,10 @@ workflows:
       - test:
           requires:
             - install
+  release:
+    jobs:
+      - release:
+          filters:
+            branches:
+              only:
+                - main
