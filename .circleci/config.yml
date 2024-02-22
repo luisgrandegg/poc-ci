@@ -6,6 +6,7 @@ executors:
     working_directory: ~/ng-project
 orbs:
   browser-tools: circleci/browser-tools@1.4.7
+  sonarcloud: sonarsource/sonarcloud@2.0.0
 jobs:
   install:
     executor: node
@@ -29,15 +30,31 @@ jobs:
           at: .
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
-      - run: npm run test
+      - run: npm run test:ci
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./coverage
+  sonar:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: .
+      - sonarcloud/scan
   build:
     executor: node
     steps:
       - attach_workspace:
           at: .
       - run: npm run build
-      - run: echo building docker image poc-ci version:{{ .Branch }}
-      - run: echo uploading docker image poc-ci version:{{ .Branch }}
+      - run: echo building docker image poc-ci version:$CIRCLE_BRANCH
+      - run: echo uploading docker image poc-ci version:$CIRCLE_BRANCH
+  lint:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: .
+      - run: npm run lint
   release:
     executor: node
     steps:
@@ -49,12 +66,20 @@ workflows:
   quality:
     jobs:
       - install
-      - build:
+      - lint:
           requires:
             - install
       - test:
           requires:
             - install
+      - sonar:
+          requires:
+            - test
+          context: SonarCloud
+      - build:
+          requires:
+            - test
+            - lint
   release:
     jobs:
       - release:
